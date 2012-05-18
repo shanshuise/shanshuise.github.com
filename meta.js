@@ -1,5 +1,5 @@
-{
-    "site_name": "小天天博客",
+﻿{
+    "site_name": "shanshuise",
     "copyright": "wawasoft 2012",
     "cates": [
         {"name": "tech", "text":"技术"},
