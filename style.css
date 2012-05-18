@@ -1,0 +1,93 @@
+body, ul, ol {
+	padding: 0;
+	margin: 0;
+}
+a {
+	color: #3777d6;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+ul, ol {
+	list-style: none;
+}
+
+body {
+	font: 14px Monaco, "Microsoft YaHei", Monospace, sans-serif;
+}
+/*layout*/
+#container, #logo, #footer {
+	width: 72%;
+	margin: 0 auto;
+	overflow: hidden;
+}
+#logo h1 {
+	width: 32%;
+	text-align: center;
+	float: left;
+}
+#logo span {
+	float: right;
+	line-height: 4em;
+}
+#logo span a {
+	margin:0 10px;
+}
+#nav {
+	float: left;
+	width: 28%;
+	padding-right: 2%;
+	margin-right: 2%;
+	border-right: 3px solid lightgray;
+}
+#nav li {
+	margin-left: 2.3em;
+}
+#nav .nav_header {
+	margin-left: 0;
+}
+#article, #comment {
+	float: right;
+	width: 67%;
+	padding-bottom: 30px;
+}
+#article ul {
+	list-style: square inside;
+	/*none/disc/circle/square/decimal/zero*/
+}
+#article blockquote {
+	overflow: hidden;
+	color: #777;
+}
+#article blockquote:before {
+	float: left;
+	content: "\“";
+	font-size: 30px;
+	color: #999;
+}
+#article blockquote p {
+	padding-left: 2em;
+}
+#article pre {
+	overflow: auto;
+	max-height: 400px;
+	padding: 15px 20px;
+	border-bottom: 1px solid #eee;
+	border-radius: 3px;
+	box-shadow: rgba(0,0,0,0.2) 0 1px 2px inset;
+	background: #fafafa;
+}
+#article p img {
+	box-shadow: 0 0 10px #999;
+	opacity: 0.8;
+	margin: 5px 0;
+}
+#article p img:hover {
+	opacity: 1;
+}
+#footer p {
+	color: #888;
+	text-align: right;
+	margin:0 10px 30px 0;
+}

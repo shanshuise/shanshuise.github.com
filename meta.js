@@ -2,8 +2,8 @@
     "site_name": "shanshuise",
     "copyright": "wawasoft 2012",
     "cates": [
-        {"name": "tech", "text":"技术"},
-        {"name": "art", "text":"艺术"},
+        {"name": "tech", "text":"工作"},
+        {"name": "art", "text":"网络"},
         {"name": "other", "text":"其它"}
     ],
     "articles":[
