@@ -1,144 +1,119 @@
 $(function(){
-    $('body').ajaxError(function(event, request, settings, err){
-        console.log(event);
-    });
-    $.ajaxSetup({
-        cache: false 
-    });
+	var blog = {};
+	blog.builder = {};
+	blog.views = {};
+	//页面生成器
+	blog.builder.MainModel = function(data) {
+		var model = {};
+		var monthsName = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','DES','OCT','NOV','DEC'];
+		model.site_name = data.site_name;
+		model.copyright = data.copyright;
+		model.pages = data.pages;
+		//按照yyyy-mm对文章进行按时分类 eg: {'2012-04':[{},{}], '2012-05':[{},{}]}
+		model.months = _.groupBy(data.articles, function(article) {
+			return article.file.substring(0, 7);
+		});
+		//更新months的内容为{month:**,articles:{{link:***, title:***},{link:***, title:***}}}
+		model.months = _.map(model.months, function(value, key){
+			return {
+				month: monthsName[key.substring(6, 7) - 1] + ' ' + key.substring(0, 4),
+				articles: _.map(value, function(article){
+					return {link: article.file, title: article.file.substring(8, 10) + ' &raquo; ' + article.title}
+				})
+			}
+		});
+		return model;
+	};
+	//文章HTM生成器
+	blog.builder.Mustache = new Showdown.converter();
+	
+	//生成文章
+	blog.views.Article = Backbone.View.extend({
+		initialize: function(option) {
+			var that = this;
+			this.article = option.article;
+			_.bindAll(this, 'render');
+			$.get('post/' + that.article + '.txt', function(data) {
+				that.model = data;
+				that.render();
+			})
+		},
+		render: function() {
+			if (!this.model) return this;
+			var ariticleHtml = blog.builder.Mustache.makeHtml(this.model);
+			$(this.el).html(ariticleHtml);//显示文章
 
-
-    var blog    = {};
-    blog.views  = {};
-    blog.helper = {};
-
-    blog.helper.build_main_model = function(data){
-        var result        = {};
-        result.site_name  = data.site_name;
-        result.copyright  = data.copyright;
-        result.navlist    = _.map(data.cates, function(cate){
-            return {link: '#!cate/'+ cate.name, text: cate.text};
-        });
-        return result;
-    };
-
-    blog.helper.build_sidebar_model = function(data, cate){
-        var result   = {};
-
-        var articles = data.articles;
-        if(cate){
-            articles = _.filter(articles, function(article){return article.cate == cate;});
-        }
-        
-        result.months = _.groupBy(articles, function(article){
-            return article.file.substring(0, 7);
-        });
-        result.months     = _.map(result.months, function(value, key){
-            return {month: key, 
-                articles: _.map(value, function(article){
-                    return {link: article.file, text: article.title}
-                })
-            };
-        });
-
-        return result;
-    };
-
-    blog.helper.markdown = new Showdown.converter();
-
-    blog.views.Sidebar = Backbone.View.extend({
-        template: $('#tpl-sidebar').html(),
-        initialize: function(options){
-            this.model = options.model; 
-            _.bindAll(this, 'render');
-        },
-        render: function(){
-            var html = Mustache.to_html(this.template, this.model);
-            $(this.el).append(html);
-            return this;
-        }
-    });
-
-    blog.views.Article = Backbone.View.extend({
-        initialize: function(options){
-            var that = this;
-            this.article = options.article;
-            _.bindAll(this, 'render');
-            $.get('post/'+this.article+'.txt', function(data){
-                that.model = data;
-                that.render();
-            });
-        },
-        render: function(){
-            if(!this.model) return this;
-            var html = blog.helper.markdown.makeHtml(this.model);
-            $(this.el).html(html);
-        }
-    });
-
-    blog.views.Main = Backbone.View.extend({
-        el:$('.main-body'),
-        template: $('#tpl-main').html(),
-        initialize: function(){
-            _.bindAll(this, 'render');
-            _.bindAll(this, 'sync');
-        },
-        sync: function(){
-            var that = this;
-            $.getJSON('meta.js', function(data){
-                that.data = data;
-                that.render();
-            });
-        },
-        render: function(){
-            if(!this.data){
-                this.sync();
-                return this;
+			$('#disqus_thread').empty();
+			if (this.article != 'index') {
+                new BlogFun.Comment();
             }
+		}
+	});
 
-            var main_model = blog.helper.build_main_model(this.data); 
-            var main_html = Mustache.to_html(this.template, main_model);
-            $(this.el).empty().append(main_html);
+	//第三方评论系统disqus
+	var BlogFun = {
+		Comment: function() {
+			var disqus_shortname = 'yanqw'; // required: replace example with your forum shortname
+		    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+		    dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+		    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+		}
+	}
 
-            var sidebar_mode = blog.helper.build_sidebar_model(this.data, this.cate);
-            var sidebar_view = new blog.views.Sidebar({model: sidebar_mode});
-            this.$(".sidebar-nav").empty().append(sidebar_view.render().el);
+	//初始运行函数，渲染页面数据
+	blog.views.Main = Backbone.View.extend({
+		el: $('#main_body'),
+		template: $('#tpl_main').html(),
+		initialize: function() {
+			_.bindAll(this, 'sync');
+			_.bindAll(this, 'render');
+		},
+		sync: function() {
+			var that = this;
+			$.getJSON('meta.js', function(data){
+				that.data = data;
+				that.render();
+			})
+		},
+		render: function() {
+			if (!this.data) {
+				this.sync();
+				return this;
+			}
 
-            if(this.cate){
-                this.$('.navbar-inner .nav li a[href="#!cate/'+this.cate+'"]').parent().addClass('active');
-            }
-            
-            if(this.article){
-                var article_view = new blog.views.Article({article:this.article});
-                this.$(".article-content").empty().append(article_view.render().el);
-            }
-        }
-    }); 
+			var mainModel = blog.builder.MainModel(this.data);
+			var mainHtml = Mustache.to_html(this.template, mainModel);
+			$(this.el).empty().append(mainHtml);
 
-    blog.App = Backbone.Router.extend({
-        routes: {
-            ""              : "index",
-            "!cate/:cate"    : "cate",
-            "!show/:article" : "show"
-        },
-        make_main_view: function(cate, article){
-            if(!this.main){
-                this.main = new blog.views.Main();
-            }
-            this.main.cate = cate;
-            this.main.article = article;
-            this.main.render();
-        }, 
-        index: function(){
-            this.make_main_view(null, 'index');
-        },
-        cate: function(cate){
-            this.make_main_view(cate, 'index');
-        },
-        show: function(article){
-            this.make_main_view(null, article);
-        }
-    });
-
-    app = new blog.App();
-    Backbone.history.start();
+			if (this.article) {
+				var article_view = new blog.views.Article({article:this.article});
+				$('#article').empty().append(article_view.render().el);
+			}
+		}
+	});
+	//主APP，URL驱动
+	blog.App = Backbone.Router.extend({
+		routes: {
+			'' 					: 'index',
+			'!post/:article'	: 'post'
+		},
+		//首页
+		index: function() {
+			this.makeContent('index');
+		},
+		//显示文章
+		post: function(article) {
+			this.makeContent(article);
+		},
+		//生成内容
+		makeContent: function(article) {
+			if (!this.main) {
+				this.main = new blog.views.Main();
+			}
+			this.main.article = article;
+			this.main.render();
+		}
+	});
+	var app = new blog.App();
+	Backbone.history.start();
 });
