@@ -9,7 +9,7 @@ $(function(){
 		model.site_name = data.site_name;
 		model.copyright = data.copyright;
 		model.pages = data.pages;
-		//按照yyyy-mm对文章进行按时分类 eg: {'2012-04':[{},{}], '2012-05':[{},{}]}
+		//按照yyyy-mm对文章进行按时分类 eg: {'2012-01':[{},{}], '2012-05':[{},{}]}
 		model.months = _.groupBy(data.articles, function(article) {
 			return article.file.substring(0, 7);
 		});
