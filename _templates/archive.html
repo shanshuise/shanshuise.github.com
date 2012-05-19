@@ -1,43 +1,32 @@
 {% extends "layout.html" %}
 
-{% block title %}{{title}} | {{context.sitename}}{% endblock %}
+{% block title %}{{title|capitalize}} | {{context.sitename}}{% endblock %}
 
-{% block entrytitle%}{{title}}{%endblock%}
+{% block afterstyle%}
+{% endblock %}
 
-{% block container %}
-<ul id="entry-list" class="fn-clear">
+
+{% block main %}
+{% if pager.posts %}
+<dl>
+    {% set year = 0 %}
     {% for post in pager.posts %}
-    <li>
-    <h3><a href="{{content_url(post.slug)}}">{{post.title}}</a></h3>
-    <p>{{post.summary}}</p>
-    <time class="updated" datetime="{{post.date|xmldatetime}}" title="{{post.date.strftime("%a, %b %d, %Y")}}" pubdate>
-    <a href="/{{post.date.year}}/" class="year">{{post.date.year}}</a>
-    <span class="day">{{post.date.strftime("%b. %d")}}</span>
-    </time>
-    </li>
+    {% if post.date.year != year %}
+    <dt class="entry-time{%if loop.index == 1%} entry-top-time{%endif%}"><a href="/{{post.date.year}}/">{{post.date.year}}</a></dt>
+    {% endif %}
+    <dt class="{%if loop.index > 5%}entry-title {%endif%}fn-clear">
+        <h3 class="fn-left"><a href="{{content_url(post.slug)}}">{{post.title}}</a></h3>
+        <time class="fn-right updated" datetime="{{post.date|xmldatetime}}" pubdate>{{post.date.strftime("%a, %b %d")}}</time>
+    </dt>
+    {% set year = post.date.year %}
+    {% if loop.index < 6 %}
+    <dd>
+    {%if post.summary%}<p>{{post.summary}}</p>{%else%}{{post.content}}{%endif%}
+    </dd>
+    {% endif %}
     {% endfor %}
-</ul>
-{% if pager.pages > 1 %}
-<div id="pagination">
-    {% if pager.prev %}
-        {% if pager.prev == 1 %}
-        {% if pager.sub_folder == 'page' %}
-        <a class="prev" href="{{ content_url(pager.folder) }}">«Prev</a>
-        {% else %}
-        <a class="prev" href="{{ content_url(pager.folder, pager.sub_folder) }}">«Prev</a>
-        {% endif %}
-        {% else %}
-        <a class="prev" href="{{ content_url(pager.folder, pager.sub_folder, pager.prev) }}">«Prev</a>
-        {% endif %}
-    {% else %}
-    <span class="prev">«Prev</span>
-    {% endif %}
-    <span class="fn-current">{{pager.page}}</span>
-    {% if pager.next %}
-    <a class="next" href="{{ content_url(pager.folder, pager.sub_folder, pager.next) }}">Next»</a>
-    {% else %}
-    <span class="next">Next»</span>
-    {% endif %}
-</div>
+</dl>
 {% endif %}
+
+{% include "pagination.html" %}
 {% endblock %}

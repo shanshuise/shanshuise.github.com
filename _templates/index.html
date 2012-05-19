@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block afterstyle %}
+{% if post.summary %}
+<meta name="description" content="{{ post.summary }}" />
+{% endif %}
+<style type="text/css">
+    time.updated, #latest small { 
+        color: #808081;
+        font-size: 80%;
+        font-family: menlo, monospace;
+    }
+    #latest small {
+        margin: 0 .8em;
+    }
+</style>
+{% endblock %}
+
+{% block title %}{{post.title}}{% endblock %}
+
+{% block entry %}
+<div id="latest" class="section">
+    <h2>Latest</h2>
+    <ul>
+        <li>
+        <time class="updated" datetime="{{status.posts[0].date|xmldatetime}}" pubdate>{{status.posts[0].date.strftime("%a, %b %d, %Y")}}</time> <small> — </small>
+        <a href="{{content_url(status.posts[0].slug)}}">{{status.posts[0].title}}</a>
+        {%if status.posts[0].summary%}<p>{{ status.posts[0].summary }}</p>{%endif%}
+        </li>
+        {% for post in status.posts[1:5] %}
+        <li>
+        <time class="updated" datetime="{{post.date|xmldatetime}}" pubdate>{{post.date.strftime("%a, %b %d, %Y")}}</time> <small> — </small>
+        <a href="{{content_url(post.slug)}}">{{post.title}}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{{ post.content }}
+{% endblock %}
